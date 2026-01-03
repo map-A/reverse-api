@@ -2,7 +2,6 @@ pub mod dashboard;
 pub mod docs;
 pub mod error;
 pub mod handlers;
-pub mod logger;
 pub mod server;
 pub mod state;
 pub mod stats;

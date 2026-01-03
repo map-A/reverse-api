@@ -13,15 +13,15 @@ echo ""
 
 # 配置 tokens
 echo "📝 配置 API Tokens..."
-DEEPSEEK_TOKEN=$(cat .deepseek_token 2>/dev/null)
+# DEEPSEEK_TOKEN=$(cat .deepseek_token 2>/dev/null)
 QWEN_TOKEN=$(cat .qwen_token 2>/dev/null)
 
-if [ -n "$DEEPSEEK_TOKEN" ]; then
-    curl -s -X POST "$API_URL/v1/config/deepseek" \
-        -H "Content-Type: application/json" \
-        -d "{\"token\": \"$DEEPSEEK_TOKEN\"}" > /dev/null
-    echo "✅ DeepSeek token 已配置"
-fi
+# if [ -n "$DEEPSEEK_TOKEN" ]; then
+#     curl -s -X POST "$API_URL/v1/config/deepseek" \
+#         -H "Content-Type: application/json" \
+#         -d "{\"token\": \"$DEEPSEEK_TOKEN\"}" > /dev/null
+#     echo "✅ DeepSeek token 已配置"
+# fi
 
 if [ -n "$QWEN_TOKEN" ]; then
     curl -s -X POST "$API_URL/v1/config/qwen" \

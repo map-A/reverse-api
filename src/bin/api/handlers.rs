@@ -20,11 +20,7 @@ pub async fn create_thread(
     ));
 
     let (thread_id, thread_state) = state
-        .create_thread(
-            payload.messages,
-            payload.metadata,
-            &payload.model,
-        )
+        .create_thread(payload.messages, payload.metadata, &payload.model)
         .await?;
 
     let response = Thread {
@@ -170,7 +166,6 @@ pub async fn list_messages(
     Ok(Json(response).into_response())
 }
 
-
 pub async fn configure_qwen(
     State(state): State<AppState>,
     Json(payload): Json<serde_json::Value>,
@@ -226,7 +221,6 @@ pub async fn create_response(
     if message_content.trim().is_empty() {
         return Err(ApiError::bad_request("Last user message content is empty"));
     }
-
 
     let model = thread_state.model.clone();
 

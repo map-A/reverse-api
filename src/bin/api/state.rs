@@ -20,8 +20,6 @@ pub struct ThreadState {
     pub metadata: Option<serde_json::Value>,
     pub messages: Vec<ThreadMessage>,
     pub model: String,
-    pub deepseek_session_id: Option<String>,
-    pub deepseek_message_id: Option<String>,
     pub qwen_chat_id: Option<String>,
     pub qwen_parent_id: Option<String>,
 }
@@ -37,7 +35,6 @@ impl AppState {
             qwen_client: Arc::new(RwLock::new(None)),
         }
     }
-
 
     pub async fn set_qwen_token(&self, token: String) {
         let mut qw_token = self.qwen_token.write().await;
@@ -122,14 +119,11 @@ impl AppState {
             .unwrap()
             .as_secs();
 
-
         let thread_state = ThreadState {
             created_at,
             metadata,
             messages,
             model: model.to_string(),
-            deepseek_session_id: None,
-            deepseek_message_id: None,
             qwen_chat_id: None,
             qwen_parent_id: None,
         };
@@ -222,8 +216,6 @@ impl Clone for ThreadState {
             metadata: self.metadata.clone(),
             messages: self.messages.clone(),
             model: self.model.clone(),
-            deepseek_session_id: self.deepseek_session_id.clone(),
-            deepseek_message_id: self.deepseek_message_id.clone(),
             qwen_chat_id: self.qwen_chat_id.clone(),
             qwen_parent_id: self.qwen_parent_id.clone(),
         }

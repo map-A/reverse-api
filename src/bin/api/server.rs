@@ -57,15 +57,7 @@ async fn health_check(State(state): State<AppState>) -> impl IntoResponse {
 }
 
 async fn list_models(State(state): State<AppState>) -> impl IntoResponse {
-    let mut static_models = vec![
-        serde_json::json!({
-            "id": "deepseek",
-            "object": "model",
-            "created": 1704067200,
-            "owned_by": "deepseek"
-        }),
-    ];
-
+    let mut static_models = vec![];
     // Add Qwen models if available
     if let Some(qwen_models) = state.get_qwen_models().await {
         for model in qwen_models {
@@ -85,10 +77,7 @@ async fn list_models(State(state): State<AppState>) -> impl IntoResponse {
     }))
 }
 
-pub async fn run(
-    host: &str,
-    port: u16,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn run(host: &str, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     let addr: SocketAddr = format!("{}:{}", host, port).parse()?;
     let state = AppState::new();
     let app = router(state);
@@ -103,9 +92,7 @@ pub async fn run(
     Logger::info("  Threads: POST /v1/threads, GET /v1/threads");
     Logger::info("  Thread: GET/DELETE /v1/threads/:thread_id");
     Logger::info("  Messages: POST/GET /v1/threads/:thread_id/messages");
-    Logger::info(
-        "  Response: POST /v1/responses (supports qwen models)",
-    );
+    Logger::info("  Response: POST /v1/responses (supports qwen models)");
     Logger::info("  Config Qwen: POST /v1/config/qwen");
     Logger::info("  Dashboard: GET /dashboard");
     Logger::info("  Dashboard Stats: GET /dashboard/stats");

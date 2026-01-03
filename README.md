@@ -1,12 +1,12 @@
-# Reverse-API
+# Qwen2Api
 
 中文文档 | [English](./README.md)
 
-一个用 Rust 编写的统一逆向 API 包装器，提供对多个 AI 服务的无缝访问，包括 ChatGPT、Grok、DeepSeek、Qwen 等。
+一个用 Rust 编写的统一逆向 API 包装器，提供对多个 AI 服务的无缝访问，包括 ~~ChatGPT、Grok、DeepSeek~~、Qwen 等(示例只支持Qwen，其他暂时集成，自测使用)
 
 ## 🌟 特性
 
-- **多模型支持**：统一接口支持 ChatGPT、Grok (XAI)、DeepSeek、Qwen 和 GLM 模型
+- **多模型支持**：统一接口支持 ~~ChatGPT、Grok (XAI)、DeepSeek~~、Qwen 模型
 - **多模态能力**：支持文本、图片、视频、音频和文档（通过 Qwen）
 - **RESTful API**：简洁的、兼容 OpenAI 的 API 设计
 - **流式响应**：实时流式传输，提供更好的用户体验
@@ -28,8 +28,8 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/map-A/reverse-api.git
-cd reverse-api
+git clone https://github.com/map-A/qwen2api.git
+cd qwen2api
 ```
 
 ### 2. 编译项目
@@ -42,12 +42,13 @@ cargo build --release
 
 您需要从要使用的服务获取 token：
 
-#### DeepSeek Token
-1. 访问 https://chat.deepseek.com/
-2. 登录并开始对话
-3. 打开开发者工具（F12）→ Application → LocalStorage
-4. 找到 `userToken` 并复制其值
-5. 保存到 `.deepseek_token` 文件或通过 API 设置
+~~#### DeepSeek Token~~ 
+~~1. 访问 https://chat.deepseek.com/~~ 
+~~2. 登录并开始对话~~
+~~3. 打开开发者工具（F12）→ Application → LocalStorage~~
+~~4. 找到 `userToken` 并复制其值~~
+~~5. 保存到 `.deepseek_token` 文件或通过 API 设置~~
+
 
 #### Qwen Token
 1. 访问 https://chat.qwen.ai/
@@ -75,10 +76,10 @@ export API_PORT=6969
 ### 5. 通过 API 配置 Token
 
 ```bash
-# 配置 DeepSeek token
-curl -X POST http://localhost:6969/v1/config/deepseek \
-  -H "Content-Type: application/json" \
-  -d '{"token": "your_deepseek_token"}'
+~~# 配置 DeepSeek token~~
+~~curl -X POST http://localhost:6969/v1/config/deepseek \~~
+  ~~-H "Content-Type: application/json" \~~
+  ~~-d '{"token": "your_deepseek_token"}'~~
 
 # 配置 Qwen token
 curl -X POST http://localhost:6969/v1/config/qwen \
@@ -127,12 +128,12 @@ GET /v1/models
       "created": 1677610602,
       "owned_by": "xai"
     },
-    {
-      "id": "deepseek-r1",
-      "object": "model",
-      "created": 1677610602,
-      "owned_by": "deepseek"
-    },
+    ~~{~~
+      ~~"id": "deepseek-r1",~~
+      ~~"object": "model",~~
+      ~~"created": 1677610602,~~
+      ~~"owned_by": "deepseek"~~
+    ~~},~~
     {
       "id": "qwen3-max",
       "object": "model",
@@ -292,26 +293,7 @@ GET /v1/threads/{thread_id}/messages
 
 ## 💡 使用示例
 
-### 示例 1：使用 DeepSeek 进行简单对话
-
-```bash
-# 创建线程
-THREAD_ID=$(curl -s -X POST http://localhost:6969/v1/threads \
-  -H "Content-Type: application/json" \
-  -d '{"model": "deepseek-r1"}' | jq -r '.id')
-
-# 添加消息
-curl -s -X POST http://localhost:6969/v1/threads/$THREAD_ID/messages \
-  -H "Content-Type: application/json" \
-  -d '{"role": "user", "content": "用一句话解释量子计算"}'
-
-# 获取响应
-curl -s -X POST http://localhost:6969/v1/responses \
-  -H "Content-Type: application/json" \
-  -d "{\"thread_id\": \"$THREAD_ID\", \"model\": \"deepseek-r1\"}"
-```
-
-### 示例 2：使用 Qwen 进行图像识别
+### 示例 1：使用 Qwen 进行图像识别
 
 ```bash
 # 上传图片
@@ -334,7 +316,7 @@ curl -s -X POST http://localhost:6969/v1/responses \
   -d "{\"thread_id\": \"$THREAD_ID\", \"model\": \"qwen3-max\", \"file_ids\": [\"$FILE_ID\"]}"
 ```
 
-### 示例 3：生成图片
+### 示例 2：生成图片
 
 ```bash
 curl -s -X POST http://localhost:6969/v1/images/generate \
@@ -432,12 +414,6 @@ chat('你好！').then(console.log);
 
 | 提供商 | 模型 ID | 功能 | 多模态 |
 |----------|----------|--------------|------------|
-| XAI | `grok-3-auto` | 文本生成 | ❌ |
-| XAI | `grok-3-turbo` | 快速文本生成 | ❌ |
-| XAI | `grok-3-mini` | 轻量级模型 | ❌ |
-| OpenAI | `chatgpt` | 文本生成 | ❌ |
-| DeepSeek | `deepseek-r1` | 推理模型 | ❌ |
-| DeepSeek | `deepseek-chat` | 通用对话 | ❌ |
 | 阿里巴巴 | `qwen3-max` | 高级多模态 | ✅ |
 | 阿里巴巴 | `qwen3-plus` | 增强模型 | ✅ |
 | 阿里巴巴 | `qwen3-turbo` | 快速模型 | ✅ |
@@ -454,7 +430,7 @@ Qwen 模型支持以下文件类型：
 ## 📁 项目结构
 
 ```
-reverse-api/
+qwen2api/
 ├── src/
 │   ├── bin/
 │   │   ├── api_server.rs      # 主服务器程序
@@ -466,7 +442,7 @@ reverse-api/
 │   │       └── docs.rs        # API 文档
 │   ├── chatgpt/               # ChatGPT 客户端
 │   ├── grok/                  # Grok 客户端
-│   ├── deepseek/              # DeepSeek 客户端
+│   ├── ~~deepseek/~~              ~~# DeepSeek 客户端~~
 │   └── qwen/                   # Qwen 客户端（多模态）
 ├── examples/                  # 使用示例
 ├── generated/                 # 自动生成的媒体文件
@@ -493,13 +469,13 @@ api_server [OPTIONS]
 
 - `API_HOST`：服务器主机（默认：0.0.0.0）
 - `API_PORT`：服务器端口（默认：6969）
-- `DEEPSEEK_TOKEN`：DeepSeek 认证 token
+- ~~`DEEPSEEK_TOKEN`：DeepSeek 认证 token~~
 - `QWEN_TOKEN`：Qwen 认证 token
 
 ### Token 文件
 
 您也可以将 token 存储在文件中：
-- `.deepseek_token` - DeepSeek token
+~~- `.deepseek_token` - DeepSeek token~~
 - `.qwen_token` - Qwen token
 
 ## 🌐 仪表板和文档
@@ -517,8 +493,8 @@ api_server [OPTIONS]
 ### 运行示例
 
 ```bash
-# DeepSeek 示例
-DEEPSEEK_TOKEN="your_token" cargo run --example deepseek_example
+~~# DeepSeek 示例~~
+~~DEEPSEEK_TOKEN="your_token" cargo run --example deepseek_example~~
 
 # Qwen 基础示例
 QWEN_TOKEN="your_token" cargo run --example qwen_example
@@ -557,8 +533,8 @@ cargo build --release
 
 ### Token 不工作
 
-1. **DeepSeek**：从 https://chat.deepseek.com/ 获取新的 token
-   - 登录 → F12 → Application → LocalStorage → `userToken`
+~~1. **DeepSeek**：从 https://chat.deepseek.com/ 获取新的 token~~
+   ~~- 登录 → F12 → Application → LocalStorage → `userToken`~~
 2. **Qwen**：从 https://chat.qwen.ai/ 获取新的 token
    - 登录 → F12 → Application → Cookies → `token`
 
