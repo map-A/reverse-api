@@ -86,9 +86,8 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
+          token: ${{ secrets.RELEASE_TOKEN }}
           tag_name: ${{ github.ref_name }}
           release_name: ${{ github.ref_name }}
           body: "Automated release for tag ${{ github.ref_name }}"
@@ -97,7 +96,7 @@ jobs:
 
       - name: Upload assets to Release
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           UPLOAD_URL: ${{ steps.create_release.outputs.upload_url }}
         run: |
           set -e
@@ -105,5 +104,5 @@ jobs:
           for f in *.zip; do
             echo "Uploading $f"
             fname=$(basename "$f")
-            curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/zip" --data-binary @"$f" "${UPLOAD_URL}?name=$fname"
+            curl -s -X POST -H "Authorization: token $RELEASE_TOKEN" -H "Content-Type: application/zip" --data-binary @"$f" "${UPLOAD_URL}?name=$fname"
           done
