@@ -20,7 +20,8 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Build and install binary to dist
+      - name: Build and install binary to dist (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         env:
           MATRIX_OS: ${{ matrix.os }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
@@ -31,17 +32,38 @@ jobs:
           cargo install --path . --root dist
           echo "Installed files:" && ls -la dist/bin || true
 
-      - name: Package
+      - name: Build and install binary to dist (Windows)
+        if: matrix.os == 'windows-latest'
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          if (Test-Path '.qwen_token') { Copy-Item .qwen_token dist/.qwen_token -Force } else { '# Add your tokens here, one per line' | Out-File -FilePath dist/.qwen_token -Encoding utf8 }
+          cargo install --path . --root dist
+          Write-Output 'Installed files:'; if (Test-Path 'dist\\bin') { Get-ChildItem -Path 'dist\\bin' -Force }
+
+      - name: Package (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         env:
           MATRIX_OS: ${{ matrix.os }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
           set -e
-          if [ "${MATRIX_OS}" = "windows-latest" ]; then
-            pwsh -Command "Compress-Archive -Path dist\\bin\\*,dist\\.qwen_token -DestinationPath $env:GITHUB_WORKSPACE\\${MATRIX_OS}.zip -Force"
-          else
-            zip -j "$GITHUB_WORKSPACE/${MATRIX_OS}.zip" dist/bin/* dist/.qwen_token
-          fi
+          zip -j "$GITHUB_WORKSPACE/${MATRIX_OS}.zip" dist/bin/* dist/.qwen_token
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE ($env:MATRIX_OS + '.zip')
+          Compress-Archive -Path dist\\bin\\*,dist\\.qwen_token -DestinationPath $out -Force
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
