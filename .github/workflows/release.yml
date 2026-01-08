@@ -86,6 +86,5 @@ jobs:
       - name: Create Release and upload artifacts
         uses: softprops/action-gh-release@v1
         with:
-          files: ./artifacts/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
+          files: ./artifacts/**/*.zip
