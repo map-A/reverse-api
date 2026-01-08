@@ -230,12 +230,12 @@ pub async fn create_response(
     let answer = if model.starts_with("qwen") {
         Logger::info("Starting Qwen conversation");
 
-        // Get cached Qwen client from state (reuse same instance for continuous conversation)
-        let client = state.get_qwen_client().await.ok_or_else(|| {
-            ApiError::bad_request(
-                "Qwen token not configured. Please configure it via POST /v1/config/qwen",
-            )
-        })?;
+        // Acquire a client by rotating tokens: get next token and create a client for it
+        let token = state
+            .next_qwen_token()
+            .await
+            .ok_or_else(|| ApiError::bad_request("Qwen token not configured. Please configure it via POST /v1/config/qwen"))?;
+        let client = reverse_api::QwenClient::with_token(token).map_err(|e| ApiError::internal_error(format!("Could not create Qwen client: {}", e)))?;
         // Check for special instructions
         let use_search = payload
             .instructions
@@ -382,11 +382,12 @@ pub async fn upload_file_for_qwen(
     State(state): State<AppState>,
     mut multipart: Multipart,
 ) -> std::result::Result<AxumResponse, ApiError> {
-    let client = state.get_qwen_client().await.ok_or_else(|| {
-        ApiError::bad_request(
-            "Qwen token not configured. Please configure it via POST /v1/config/qwen",
-        )
-    })?;
+    let token = state
+        .next_qwen_token()
+        .await
+        .ok_or_else(|| ApiError::bad_request("Qwen token not configured. Please configure it via POST /v1/config/qwen"))?;
+    let client = reverse_api::QwenClient::with_token(token)
+        .map_err(|e| ApiError::internal_error(format!("Could not create Qwen client: {}", e)))?;
 
     let mut file_data: Option<(String, Vec<u8>)> = None;
 
@@ -444,11 +445,12 @@ pub async fn generate_image(
 ) -> std::result::Result<AxumResponse, ApiError> {
     Logger::info(&format!("Generating image with prompt: {}", payload.prompt));
 
-    let client = state.get_qwen_client().await.ok_or_else(|| {
-        ApiError::bad_request(
-            "Qwen token not configured. Please configure it via POST /v1/config/qwen",
-        )
-    })?;
+    let token = state
+        .next_qwen_token()
+        .await
+        .ok_or_else(|| ApiError::bad_request("Qwen token not configured. Please configure it via POST /v1/config/qwen"))?;
+    let client = reverse_api::QwenClient::with_token(token)
+        .map_err(|e| ApiError::internal_error(format!("Could not create Qwen client: {}", e)))?;
 
     // Get thread state if provided for continuous generation
     let extra_data = if let Some(thread_id) = &payload.thread_id {
@@ -524,11 +526,12 @@ pub async fn generate_video(
 ) -> std::result::Result<AxumResponse, ApiError> {
     Logger::info(&format!("Generating video with prompt: {}", payload.prompt));
 
-    let client = state.get_qwen_client().await.ok_or_else(|| {
-        ApiError::bad_request(
-            "Qwen token not configured. Please configure it via POST /v1/config/qwen",
-        )
-    })?;
+    let token = state
+        .next_qwen_token()
+        .await
+        .ok_or_else(|| ApiError::bad_request("Qwen token not configured. Please configure it via POST /v1/config/qwen"))?;
+    let client = reverse_api::QwenClient::with_token(token)
+        .map_err(|e| ApiError::internal_error(format!("Could not create Qwen client: {}", e)))?;
 
     // Get thread state if provided for continuous generation
     let extra_data = if let Some(thread_id) = &payload.thread_id {

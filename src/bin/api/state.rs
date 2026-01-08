@@ -9,10 +9,10 @@ use tokio::sync::RwLock;
 pub struct AppState {
     threads: Arc<RwLock<HashMap<String, ThreadState>>>,
     stats: StatsCollector,
-    qwen_token: Arc<RwLock<Option<String>>>,
+    qwen_tokens: Arc<RwLock<Vec<String>>>,
+    qwen_index: Arc<tokio::sync::Mutex<usize>>,
     qwen_models: Arc<RwLock<Option<Vec<reverse_api::qwen::models::Model>>>>,
     uploaded_files: Arc<RwLock<HashMap<String, reverse_api::qwen::models::QwenFile>>>,
-    qwen_client: Arc<RwLock<Option<Arc<reverse_api::QwenClient>>>>,
 }
 
 pub struct ThreadState {
@@ -26,29 +26,42 @@ pub struct ThreadState {
 
 impl AppState {
     pub fn new() -> Self {
+        // Load tokens from .qwen_token file if present, each line is a token
+        let mut tokens: Vec<String> = vec![];
+        if let Ok(contents) = std::fs::read_to_string(".qwen_token") {
+            tokens = contents
+                .lines()
+                .map(|l| l.trim().to_string())
+                .filter(|l| !l.is_empty())
+                .collect();
+        }
+
         Self {
             threads: Arc::new(RwLock::new(HashMap::new())),
             stats: StatsCollector::new(),
-            qwen_token: Arc::new(RwLock::new(None)),
+            qwen_tokens: Arc::new(RwLock::new(tokens)),
+            qwen_index: Arc::new(tokio::sync::Mutex::new(0)),
             qwen_models: Arc::new(RwLock::new(None)),
             uploaded_files: Arc::new(RwLock::new(HashMap::new())),
-            qwen_client: Arc::new(RwLock::new(None)),
         }
     }
 
     pub async fn set_qwen_token(&self, token: String) {
-        let mut qw_token = self.qwen_token.write().await;
-        *qw_token = Some(token.clone());
-
-        // Create and cache Qwen client when token is set
-        if let Ok(client) = reverse_api::QwenClient::with_token(token) {
-            let mut qw_client = self.qwen_client.write().await;
-            *qw_client = Some(Arc::new(client));
-        }
+        let mut tokens = self.qwen_tokens.write().await;
+        tokens.clear();
+        tokens.push(token);
     }
 
-    pub async fn get_qwen_client(&self) -> Option<Arc<reverse_api::QwenClient>> {
-        self.qwen_client.read().await.as_ref().map(Arc::clone)
+    // Get next token in round-robin fashion. Returns None if no tokens configured
+    pub async fn next_qwen_token(&self) -> Option<String> {
+        let tokens = self.qwen_tokens.read().await;
+        if tokens.is_empty() {
+            return None;
+        }
+        let mut idx = self.qwen_index.lock().await;
+        let token = tokens.get(*idx % tokens.len()).cloned();
+        *idx = (*idx + 1) % tokens.len();
+        token
     }
 
     pub async fn get_qwen_models(&self) -> Option<Vec<reverse_api::qwen::models::Model>> {
