@@ -1,10 +1,8 @@
 name: Build and Release
-
 on:
   push:
     tags:
       - "*"
-
 jobs:
   build:
     name: Build for ${{ matrix.os }}
@@ -44,9 +42,8 @@ jobs:
           else
             zip -j "$GITHUB_WORKSPACE/${MATRIX_OS}.zip" dist/bin/* dist/.qwen_token
           fi
-
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: binary-${{ matrix.os }}
           path: ${{ matrix.os }}.zip
@@ -57,7 +54,7 @@ jobs:
     needs: build
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 
